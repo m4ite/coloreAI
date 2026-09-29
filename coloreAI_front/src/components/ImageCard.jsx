@@ -53,7 +53,7 @@ function SliderView({ originalUrl, colorizedUrl }) {
       {/* Colorized (base) */}
       <img
         src={colorizedUrl}
-        alt="Colorizada IA"
+        alt="Colorida com IA"
         className="absolute inset-0 w-full h-full object-cover"
         draggable={false}
       />
@@ -101,7 +101,7 @@ function SliderView({ originalUrl, colorizedUrl }) {
       </div>
 
       <div className="absolute top-3 right-3 bg-black/55 text-white text-xs font-medium px-2.5 py-1 rounded-full backdrop-blur-sm pointer-events-none">
-        Colorizada IA
+        Colorida com IA
       </div>
     </div>
   );
@@ -132,12 +132,12 @@ function SplitView({ originalUrl, colorizedUrl }) {
       >
         <img
           src={colorizedUrl}
-          alt="Colorizada IA"
+          alt="Colorida com IA"
           className="w-full h-full object-cover"
         />
 
         <div className="absolute top-3 left-3 bg-black/55 text-white text-xs font-medium px-2.5 py-1 rounded-full backdrop-blur-sm">
-          Colorizada IA
+          Colorida com IA
         </div>
 
         <div className="absolute top-3 right-3 bg-accent/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">

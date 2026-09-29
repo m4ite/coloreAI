@@ -66,8 +66,8 @@ export default function HistoryPage({
               </h1>
 
               <p className="text-fg-muted mt-1">
-                {sessions.length} colorização
-                {sessions.length !== 1 ? 'ões' : ''} no total
+                {sessions.length} 
+                {sessions.length !== 1 ? ' imagens' : ' imagem'} no total
               </p>
             </div>
 
@@ -89,7 +89,7 @@ export default function HistoryPage({
                 />
               </svg>
 
-              Nova colorização
+              Colorir nova imagem
             </button>
           </div>
 
@@ -150,8 +150,8 @@ export default function HistoryPage({
 
               <p className="text-fg font-medium">
                 {filter === 'all'
-                  ? 'Nenhuma colorização ainda'
-                  : `Nenhuma colorização ${
+                  ? 'Nenhuma coloração ainda'
+                  : `Nenhuma coloração ${
                       filter === 'done'
                         ? 'concluída'
                         : 'com erro'
@@ -169,7 +169,7 @@ export default function HistoryPage({
                   onClick={onNewColorization}
                   className="mt-5 bg-accent hover:bg-accent/90 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
                 >
-                  Nova colorização
+                  Colorir nova imagem
                 </button>
               )}
             </div>
@@ -193,7 +193,7 @@ export default function HistoryPage({
       <Modal
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title="Excluir colorização"
+        title="Excluir"
       >
         <p className="text-sm text-fg-muted mb-6 leading-relaxed">
           Tem certeza que deseja excluir{' '}

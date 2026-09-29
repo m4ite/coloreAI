@@ -200,7 +200,7 @@ function MobileHome({
                 className="flex-1"
                 onClick={handleColorize}
               >
-                Colorizar →
+                Colorir →
               </Button>
             </div>
           </div>
@@ -239,7 +239,7 @@ function MobileHome({
         {sessions.length > 0 && uploadState === 'idle' && (
           <div>
             <p className="text-xs text-fg-subtle uppercase tracking-wider font-medium mb-3">
-              Colorizações recentes
+              Colorações recentes
             </p>
 
             <div className="flex flex-col gap-2">
@@ -355,12 +355,12 @@ function MobileResult({
 
             <div>
               <p className="text-xs text-fg-subtle mb-2 uppercase tracking-wider font-medium">
-                Colorizada IA
+                ColoreAI
               </p>
 
               <img
                 src={colorizedUrl}
-                alt="Colorizada"
+                alt="Colorida"
                 className="w-full rounded-xl object-cover"
                 style={{ maxHeight: 220 }}
               />
@@ -445,7 +445,7 @@ function MobileHistory({
         </h1>
 
         <p className="text-fg-muted text-sm mt-1">
-          {sessions.length} colorizações
+          {sessions.length} Colorações
         </p>
       </div>
 
@@ -455,14 +455,14 @@ function MobileHistory({
             <span className="text-4xl mb-3">🕐</span>
 
             <p className="text-fg font-medium">
-              Nenhuma colorização
+              Nenhuma imagem colorida
             </p>
 
             <button
               onClick={() => navigate('home')}
               className="mt-4 text-sm text-accent-light hover:underline"
             >
-              + Nova colorização
+              + Colorir nova imagem
             </button>
           </div>
         ) : (
@@ -495,7 +495,7 @@ function MobileHistory({
       <Modal
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title="Excluir colorização"
+        title="Excluir"
       >
         <p className="text-sm text-fg-muted mb-5">
           Excluir{' '}

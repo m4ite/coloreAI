@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 export default function ConfidenceMapToggle({
   imageUrl,
-  alt = 'Imagem colorizada',
+  alt = 'Imagem colorida',
 }) {
   const [showMap, setShowMap] = useState(false);
 

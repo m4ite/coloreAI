@@ -34,7 +34,7 @@ function BrandPanel() {
           <LogoMark size={18} />
         </div>
         <span className="text-lg font-semibold text-fg tracking-tight">
-          ColorizeAI
+          ColoreAI
         </span>
       </div>
 
@@ -47,7 +47,7 @@ function BrandPanel() {
         </h2>
 
         <p className="text-fg-muted leading-relaxed text-base mb-10">
-          Inteligência artificial de última geração para colorizar fotos
+          Inteligência artificial de última geração para colorir fotos
           históricas com fidelidade cromática e naturalidade preservando cada
           detalhe.
         </p>
@@ -84,7 +84,7 @@ function BrandPanel() {
           <div className="rounded-2xl overflow-hidden shadow-2xl ring-2 ring-accent/20 shrink-0">
             <img
               src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=180&h=120&fit=crop&auto=format"
-              alt="Colorizada"
+              alt="Colorida"
               className="w-40 h-[106px] object-cover"
             />
           </div>
@@ -368,7 +368,7 @@ function RegisterPage({ navigate }) {
   return (
     <AuthLayout
       title="Criar conta"
-      subtitle="Comece a colorizar suas fotos gratuitamente"
+      subtitle="Comece a colorir suas fotos gratuitamente"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input

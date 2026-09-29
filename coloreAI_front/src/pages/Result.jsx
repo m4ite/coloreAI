@@ -85,7 +85,7 @@ export default function ResultPage({
                   />
                 </svg>
 
-                Nova colorização
+                Colorir nova imagem
               </button>
 
               <h1 className="text-2xl font-semibold text-fg tracking-tight">

@@ -118,7 +118,7 @@ function OverviewTab() {
         />
 
         <StatCard
-          label="Colorizações"
+          label="Imagens coloridas"
           value="28.493"
           sub="+341 hoje"
           trend="+"
@@ -401,7 +401,7 @@ function UsersTab() {
                   'E-mail',
                   'Papel',
                   'Status',
-                  'Colorizações',
+                  'Imagens Coloridas',
                   'Ações',
                 ].map((h) => (
                   <th
@@ -553,11 +553,11 @@ function MonitoringTab() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <p className="text-sm font-semibold text-fg">
-              Log de colorizações
+              Log de colorações
             </p>
 
             <p className="text-xs text-fg-muted mt-0.5">
-              Últimas colorizações processadas no sistema
+              Últimas imagens processadas no sistema
             </p>
           </div>
 

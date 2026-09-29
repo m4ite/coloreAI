@@ -125,7 +125,7 @@ export default function HomePage({
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-fg tracking-tight">
-              Nova colorização
+              Colorir nova imagem
             </h1>
 
             <p className="text-fg-muted mt-1.5">
@@ -291,7 +291,7 @@ export default function HomePage({
                   </p>
 
                   <p className="text-sm text-fg-muted mt-0.5">
-                    Clique em "Colorizar" para continuar
+                    Clique em "Colorir" para continuar
                   </p>
                 </div>
 
@@ -328,7 +328,7 @@ export default function HomePage({
                       />
                     </svg>
 
-                    Colorizar com IA
+                    Colorir com IA
                   </button>
                 </div>
               </div>
@@ -458,7 +458,7 @@ export default function HomePage({
               </div>
 
               <p className="text-[11px] text-fg-subtle mt-2 text-center">
-                Passe o mouse para ver a versão colorizada
+                Passe o mouse para ver a versão colorida
               </p>
             </div>
           )}

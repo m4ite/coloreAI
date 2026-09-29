@@ -207,7 +207,7 @@ export default function Sidebar({
         </div>
 
         <span className="font-semibold text-fg tracking-tight">
-          ColorizeAI
+          ColoreAI
         </span>
       </div>
 
@@ -225,7 +225,7 @@ export default function Sidebar({
               strokeLinecap="round"
             />
           </svg>
-          Nova colorização
+          Colorir nova imagem
         </button>
       </div>
 
@@ -303,7 +303,7 @@ export default function Sidebar({
 
           {sessions.length === 0 && (
             <p className="px-3 py-3 text-xs text-fg-subtle">
-              Nenhuma colorização ainda.
+              Nenhuma imagem colorida ainda.
             </p>
           )}
         </div>
