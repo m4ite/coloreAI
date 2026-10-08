@@ -40,16 +40,14 @@ export default function App() {
 
   const navigate = (v) => setView(v);
 
-  const handleLogin = (email) => {
-    const isAdmin = email.startsWith('admin');
+  const handleLogin = (user) => {
+    setUser(user);
 
-    setUser({
-      name: isAdmin ? 'Bruno Lima' : 'Ana Souza',
-      email,
-      role: isAdmin ? 'admin' : 'user',
-    });
-
-    navigate('home');
+    if (user.role === 'admin') {
+      navigate('admin-overview');
+    } else {
+      navigate('home');
+    }
   };
 
   const handleLogout = () => {

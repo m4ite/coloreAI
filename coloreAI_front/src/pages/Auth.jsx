@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button, Input } from '../components/ui';
 
+const API_URL = 'http://localhost:3000';
+
 function LogoMark({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
@@ -28,7 +30,6 @@ function BrandPanel() {
       <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-accent/4 blur-3xl pointer-events-none" />
       <div className="absolute top-20 right-0 w-64 h-64 rounded-full bg-accent/4 blur-3xl pointer-events-none" />
 
-      {/* Logo */}
       <div className="relative z-10 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/25">
           <LogoMark size={18} />
@@ -38,7 +39,6 @@ function BrandPanel() {
         </span>
       </div>
 
-      {/* Headline */}
       <div className="relative z-10 max-w-sm">
         <h2 className="text-[2.6rem] font-bold text-fg leading-[1.15] mb-5">
           Reviva suas
@@ -52,7 +52,6 @@ function BrandPanel() {
           detalhe.
         </p>
 
-        {/* Before / after preview */}
         <div className="flex items-center gap-4">
           <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5 shrink-0">
             <img
@@ -91,7 +90,6 @@ function BrandPanel() {
         </div>
       </div>
 
-      {/* Stats footer */}
       <div className="relative z-10 flex gap-8">
         {[
           { value: '28.493', label: 'fotos coloridas' },
@@ -116,7 +114,6 @@ function FormPanel({ title, subtitle, children }) {
   return (
     <div className="flex-1 lg:flex-none lg:w-[480px] flex items-center justify-center px-6 py-10 lg:p-14">
       <div className="w-full max-w-[360px]">
-        {/* Mobile-only logo */}
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center">
@@ -155,6 +152,7 @@ function AuthLayout({ title, subtitle, children }) {
 }
 
 /* ─── Login ─── */
+
 function LoginPage({ navigate, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -163,24 +161,42 @@ function LoginPage({ navigate, onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setError('');
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 700));
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    const ok =
-      (email === 'user@colorize.ai' && password === 'demo123') ||
-      (email === 'admin@colorize.ai' && password === 'demo123');
+      const data = await response.json();
 
-    if (ok) {
-      onLogin(email);
-    } else {
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao realizar login.');
+      }
+
+      // Guarda o JWT para ser usado nas próximas requisições
+      localStorage.setItem('token', data.token);
+
+      // Envia o usuário real para o App.jsx
+      onLogin(data.user);
+
+    } catch (error) {
       setError(
-        'E-mail ou senha inválidos. Verifique suas credenciais e tente novamente.'
+        error.message ||
+        'Não foi possível realizar o login. Tente novamente.'
       );
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -221,7 +237,9 @@ function LoginPage({ navigate, onLogin }) {
 
         {error && (
           <div className="bg-error/8 border border-error/25 rounded-xl px-4 py-3">
-            <p className="text-sm text-error leading-relaxed">{error}</p>
+            <p className="text-sm text-error leading-relaxed">
+              {error}
+            </p>
           </div>
         )}
 
@@ -244,64 +262,12 @@ function LoginPage({ navigate, onLogin }) {
           Criar conta
         </button>
       </p>
-
-      {/* Demo credentials */}
-      <div className="mt-6 pt-5 border-t border-border">
-        <p className="text-xs text-fg-subtle text-center mb-3">
-          Credenciais de demonstração
-        </p>
-
-        <div className="flex flex-col gap-2">
-          {[
-            {
-              role: 'Usuário',
-              email: 'user@colorize.ai',
-              badge: 'Usuário',
-            },
-            {
-              role: 'Administrador',
-              email: 'admin@colorize.ai',
-              badge: 'Admin',
-            },
-          ].map((d) => (
-            <button
-              key={d.email}
-              type="button"
-              onClick={() => {
-                setEmail(d.email);
-                setPassword('demo123');
-                setError('');
-              }}
-              className="flex items-center justify-between bg-muted-bg/50 hover:bg-muted-bg border border-border/60 rounded-xl px-3.5 py-2.5 transition-colors"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-accent-light">
-                    {d.role[0]}
-                  </span>
-                </div>
-
-                <span className="text-xs font-medium text-fg-muted">
-                  {d.role}
-                </span>
-              </div>
-
-              <span className="text-[11px] font-mono text-fg-subtle">
-                {d.email}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <p className="text-[11px] text-fg-subtle text-center mt-2">
-          Senha: <span className="font-mono">demo123</span>
-        </p>
-      </div>
     </AuthLayout>
   );
 }
 
 /* ─── Register ─── */
+
 function RegisterPage({ navigate }) {
   const [form, setForm] = useState({
     name: '',
@@ -310,6 +276,7 @@ function RegisterPage({ navigate }) {
     confirm: '',
   });
 
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -321,12 +288,45 @@ function RegisterPage({ navigate }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
+
+    setError('');
+
+    if (form.password !== form.confirm) {
+      setError('As senhas não conferem.');
+      return;
+    }
+
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        }),
+      });
 
-    setLoading(false);
-    setSuccess(true);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao criar conta.');
+      }
+
+      setSuccess(true);
+
+    } catch (error) {
+      setError(
+        error.message ||
+        'Não foi possível criar a conta. Tente novamente.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (success) {
@@ -412,6 +412,14 @@ function RegisterPage({ navigate }) {
           }
         />
 
+        {error && (
+          <div className="bg-error/8 border border-error/25 rounded-xl px-4 py-3">
+            <p className="text-sm text-error leading-relaxed">
+              {error}
+            </p>
+          </div>
+        )}
+
         <Button
           type="submit"
           size="lg"
@@ -439,6 +447,7 @@ function RegisterPage({ navigate }) {
 }
 
 /* ─── Forgot password – step 1 ─── */
+
 function ForgotEmailPage({ navigate }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -528,6 +537,7 @@ function ForgotEmailPage({ navigate }) {
 }
 
 /* ─── Forgot password – step 2 ─── */
+
 function ForgotNewPassPage({ navigate }) {
   const [form, setForm] = useState({
     password: '',
@@ -636,6 +646,7 @@ function ForgotNewPassPage({ navigate }) {
 }
 
 /* ─── Edit profile ─── */
+
 function EditProfilePage({ navigate, user, onLogout }) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
@@ -706,29 +717,6 @@ function EditProfilePage({ navigate, user, onLogout }) {
             onClick={() => setChangePwd(!changePwd)}
             className="text-sm text-accent-light hover:underline flex items-center gap-1.5"
           >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 13 13"
-              fill="none"
-            >
-              <rect
-                x="2"
-                y="6"
-                width="9"
-                height="6"
-                rx="1.5"
-                stroke="currentColor"
-                strokeWidth="1.3"
-              />
-              <path
-                d="M4.5 6V4a2 2 0 014 0v2"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-              />
-            </svg>
-
             {changePwd
               ? 'Cancelar troca de senha'
               : 'Trocar senha'}
@@ -786,21 +774,6 @@ function EditProfilePage({ navigate, user, onLogout }) {
 
         {saved && (
           <div className="flex items-center gap-2 bg-success/8 border border-success/20 rounded-xl px-4 py-3">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
-              <path
-                d="M3 8l4 4 6-7"
-                stroke="#22C55E"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
             <p className="text-sm text-success">
               Alterações salvas com sucesso.
             </p>
@@ -829,21 +802,6 @@ function EditProfilePage({ navigate, user, onLogout }) {
           onClick={onLogout}
           className="text-sm text-error hover:text-error/80 transition-colors flex items-center gap-1.5"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-          >
-            <path
-              d="M5 7h7M9 4l3 3-3 3M5 2H3a1 1 0 00-1 1v8a1 1 0 001 1h2"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
           Sair da conta
         </button>
       </div>
