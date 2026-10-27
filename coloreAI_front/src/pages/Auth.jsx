@@ -452,15 +452,35 @@ function ForgotEmailPage({ navigate }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
-    await new Promise((r) => setTimeout(r, 600));
+    try {
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    setLoading(false);
-    setSent(true);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Não foi possível solicitar a recuperação de senha.');
+      }
+
+      setSent(true);
+    } catch (err) {
+      setError(
+        err.message ||
+        'Não foi possível conectar ao servidor. Verifique se o backend está rodando.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -490,16 +510,8 @@ function ForgotEmailPage({ navigate }) {
             {email}
           </p>
 
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => navigate('forgot-newpass')}
-          >
-            Já tenho o link → Criar nova senha
-          </Button>
-
           <p className="text-xs text-fg-subtle mt-3">
-            (Protótipo: clique acima para continuar o fluxo)
+            Abra o link recebido no e-mail para criar uma nova senha. Se não encontrar a mensagem, confira a pasta de spam.
           </p>
         </div>
       ) : (
@@ -512,6 +524,12 @@ function ForgotEmailPage({ navigate }) {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+
+          {error && (
+            <div className="bg-error/8 border border-error/25 rounded-xl px-4 py-3">
+              <p className="text-sm text-error leading-relaxed">{error}</p>
+            </div>
+          )}
 
           <Button
             type="submit"
@@ -546,6 +564,8 @@ function ForgotNewPassPage({ navigate }) {
 
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const token = new URLSearchParams(window.location.search).get('token');
 
   const set = (k) => (e) =>
     setForm((f) => ({
@@ -555,12 +575,47 @@ function ForgotNewPassPage({ navigate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!token) {
+      setError('O link de recuperação não contém um token válido. Solicite um novo e-mail.');
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError('A nova senha deve ter pelo menos 8 caracteres.');
+      return;
+    }
+
+    if (form.password !== form.confirm) {
+      setError('As senhas não conferem.');
+      return;
+    }
+
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 600));
+    try {
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: form.password }),
+      });
 
-    setLoading(false);
-    setDone(true);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Não foi possível redefinir a senha. Solicite um novo link.');
+      }
+
+      setDone(true);
+    } catch (err) {
+      setError(
+        err.message ||
+        'Não foi possível conectar ao servidor. Verifique se o backend está rodando.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done) {
@@ -628,6 +683,12 @@ function ForgotNewPassPage({ navigate }) {
               : undefined
           }
         />
+
+        {error && (
+          <div className="bg-error/8 border border-error/25 rounded-xl px-4 py-3">
+            <p className="text-sm text-error leading-relaxed">{error}</p>
+          </div>
+        )}
 
         <Button
           type="submit"
@@ -873,6 +934,12 @@ export default function AuthPages({
   user,
   onLogout,
 }) {
+  // Links enviados por e-mail abrem a aplicação com ?token=...
+  const resetToken = new URLSearchParams(window.location.search).get('token');
+  if (resetToken) {
+    return <ForgotNewPassPage navigate={navigate} />;
+  }
+
   if (view === 'register') {
     return <RegisterPage navigate={navigate} />;
   }
