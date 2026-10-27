@@ -63,25 +63,10 @@ function MobileHome({
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-12 pb-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle
-                cx="7"
-                cy="7"
-                r="5.5"
-                stroke="white"
-                strokeWidth="1.4"
-              />
-              <path
-                d="M5 7c0-1.1.9-2 2-2s2 .9 2 2"
-                stroke="white"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
+          {/* Mesmo símbolo da Sidebar: public/favicon.svg, 28px (w-7) */}
+          <img src="/favicon.svg" alt="" className="w-7 h-7" />
 
-          <span className="font-semibold text-fg">ColorizeAI</span>
+          <span className="font-semibold text-fg">ColoreAI</span>
         </div>
 
         <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">

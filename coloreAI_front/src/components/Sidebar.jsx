@@ -182,29 +182,8 @@ export default function Sidebar({
     <aside className="w-[248px] shrink-0 bg-panel border-r border-border flex flex-col h-full overflow-hidden">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shadow-sm shadow-accent/30">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle
-              cx="7"
-              cy="7"
-              r="5.5"
-              stroke="white"
-              strokeWidth="1.4"
-            />
-            <path
-              d="M5 7c0-1.1.9-2 2-2s2 .9 2 2"
-              stroke="white"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-            />
-            <path
-              d="M7 5V3M5.5 5.75L4.2 4.45M8.5 5.75L9.8 4.45"
-              stroke="white"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
+        {/* Arquivo em public/, então o caminho começa na raiz ("/") */}
+        <img src="/favicon.svg" alt="" className="w-7 h-7" />
 
         <span className="font-semibold text-fg tracking-tight">
           ColoreAI

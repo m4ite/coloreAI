@@ -3,24 +3,9 @@ import { Button, Input } from '../components/ui';
 
 const API_URL = 'http://localhost:3000';
 
+// Símbolo da marca (public/favicon.svg). alt vazio: o nome "ColoreAI" já aparece ao lado
 function LogoMark({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="8" stroke="white" strokeWidth="1.8" />
-      <path
-        d="M7 10c0-1.657 1.343-3 3-3s3 1.343 3 3"
-        stroke="white"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M10 7V4.5M7.5 8L5.5 6M12.5 8L14.5 6"
-        stroke="white"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  return <img src="/favicon.svg" alt="" width={size} height={size} />;
 }
 
 function BrandPanel() {
@@ -31,9 +16,7 @@ function BrandPanel() {
       <div className="absolute top-20 right-0 w-64 h-64 rounded-full bg-accent/4 blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/25">
-          <LogoMark size={18} />
-        </div>
+        <LogoMark size={36} />
         <span className="text-lg font-semibold text-fg tracking-tight">
           ColoreAI
         </span>
@@ -116,10 +99,8 @@ function FormPanel({ title, subtitle, children }) {
       <div className="w-full max-w-[360px]">
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center">
-              <LogoMark size={16} />
-            </div>
-            <span className="font-semibold text-fg">ColorizeAI</span>
+            <LogoMark size={32} />
+            <span className="font-semibold text-fg">ColoreAI</span>
           </div>
         </div>
 
