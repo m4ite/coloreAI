@@ -12,7 +12,6 @@ function useIsMobile() {
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
-
     const handler = (e) => setMobile(e.matches);
 
     mq.addEventListener('change', handler);
@@ -42,7 +41,6 @@ export default function App() {
 
   const handleLogin = (user) => {
     setUser(user);
-
     if (user.role === 'admin') {
       navigate('admin-overview');
     } else {
@@ -51,6 +49,10 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('session');
+
     setUser(null);
     setSession(null);
     setUploadedImage(null);

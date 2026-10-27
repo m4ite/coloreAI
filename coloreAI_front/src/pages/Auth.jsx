@@ -659,17 +659,68 @@ function EditProfilePage({ navigate, user, onLogout }) {
   });
 
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setError('');
+    setSaved(false);
+
+    // A troca de senha é enviada ao backend; os outros campos mantêm o comportamento atual.
+    if (changePwd) {
+      if (!pwd.current || !pwd.next || !pwd.confirm) {
+        setError('Preencha a senha atual, a nova senha e a confirmação.');
+        return;
+      }
+      if (pwd.next.length < 8) {
+        setError('A nova senha deve ter pelo menos 8 caracteres.');
+        return;
+      }
+      if (pwd.next !== pwd.confirm) {
+        setError('As senhas não conferem.');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Sua sessão expirou. Entre novamente para trocar a senha.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/auth/change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            currentPassword: pwd.current,
+            newPassword: pwd.next,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.message || 'Não foi possível alterar a senha.');
+        }
+        setPwd({ current: '', next: '', confirm: '' });
+        setChangePwd(false);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+      } catch (err) {
+        setError(err.message || 'Não foi possível conectar ao servidor.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     setLoading(true);
-
     await new Promise((r) => setTimeout(r, 500));
-
     setLoading(false);
     setSaved(true);
-
     setTimeout(() => setSaved(false), 2500);
   };
 
@@ -769,6 +820,12 @@ function EditProfilePage({ navigate, user, onLogout }) {
                   : undefined
               }
             />
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-error/8 border border-error/25 rounded-xl px-4 py-3">
+            <p className="text-sm text-error">{error}</p>
           </div>
         )}
 
