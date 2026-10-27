@@ -95,8 +95,8 @@ function BrandPanel() {
 
 function FormPanel({ title, subtitle, children }) {
   return (
-    <div className="flex-1 lg:flex-none lg:w-[480px] flex items-center justify-center px-6 py-10 lg:p-14">
-      <div className="w-full max-w-[360px]">
+    <div className="flex-1 lg:flex-none lg:w-[30%] lg:min-w-[440px] flex items-center justify-center px-6 py-10 lg:p-14">
+      <div className="w-full max-w-[420px] rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-xl shadow-black/20">
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-2.5">
             <LogoMark size={32} />
@@ -104,8 +104,8 @@ function FormPanel({ title, subtitle, children }) {
           </div>
         </div>
 
-        <div className="mb-7">
-          <h1 className="text-2xl font-semibold text-fg">{title}</h1>
+        <div className="mb-7 text-center">
+          <h1 className="text-3xl font-semibold text-fg">{title}</h1>
 
           {subtitle && (
             <p className="text-sm text-fg-muted mt-1.5 leading-relaxed">
@@ -182,7 +182,7 @@ function LoginPage({ navigate, onLogin }) {
 
   return (
     <AuthLayout
-      title="Bem-vindo de volta"
+      title="Bem-vindo"
       subtitle="Entre na sua conta para continuar"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -526,9 +526,9 @@ function ForgotEmailPage({ navigate }) {
       <div className="mt-6 text-center">
         <button
           onClick={() => navigate('login')}
-          className="text-sm text-fg-muted hover:text-fg transition-colors"
+          className="text-sm text-fg-muted hover:text-fg rounded-lg border border-transparent hover:border-border px-3 py-1.5 transition-colors"
         >
-          ← Voltar ao login
+          Voltar ao login
         </button>
       </div>
     </AuthLayout>
@@ -892,9 +892,9 @@ function EditProfilePage({ navigate, user, onLogout }) {
       <div className="mt-5 pt-5 border-t border-border flex items-center justify-between">
         <button
           onClick={() => navigate('home')}
-          className="text-sm text-fg-muted hover:text-fg transition-colors"
+          className="text-sm text-fg-muted hover:text-fg rounded-lg border border-transparent hover:border-border px-3 py-1.5 transition-colors"
         >
-          ← Voltar
+          Voltar
         </button>
 
         <button
