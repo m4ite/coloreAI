@@ -10,28 +10,29 @@ function LogoMark({ size = 20 }) {
 
 function BrandPanel() {
   return (
-    <div className="hidden lg:flex flex-col justify-between flex-1 p-14 bg-surface border-r border-border relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/8 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-accent/4 blur-3xl pointer-events-none" />
-      <div className="absolute top-20 right-0 w-64 h-64 rounded-full bg-accent/4 blur-3xl pointer-events-none" />
+    <div className="hidden lg:flex flex-col justify-between flex-1 p-14 bg-surface relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/13 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-accent/8 blur-3xl pointer-events-none" />
+      <div className="absolute top-20 right-0 w-64 h-64 rounded-full bg-gray-300/2 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-white/1 blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 flex items-center gap-3">
-        <LogoMark size={36} />
-        <span className="text-lg font-semibold text-fg tracking-tight">
+      <div className="relative z-10 flex items-center gap-4 translate-y-10">
+        <LogoMark size={72} />
+        <span className="text-5xl font-bold text-fg tracking-tight">
           ColoreAI
         </span>
       </div>
 
-      <div className="relative z-10 max-w-sm">
-        <h2 className="text-[2.6rem] font-bold text-fg leading-[1.15] mb-5">
+      <div className="relative z-10 max-w-sm mt-10">
+        <h2 className="text-[2.6rem] font-bold text-gray-100 leading-[1.15] mb-5">
           Reviva suas
           <br />
           memórias <span className="text-accent-light">em cores</span>
         </h2>
 
-        <p className="text-fg-muted leading-relaxed text-base mb-10">
+        <p className="text-fg-muted leading-relaxed text-base mb-14">
           Inteligência artificial de última geração para colorir fotos
-          históricas com fidelidade cromática e naturalidade preservando cada
+          históricas com fidelidade cromática e naturalidade, preservando cada
           detalhe.
         </p>
 
@@ -95,8 +96,10 @@ function BrandPanel() {
 
 function FormPanel({ title, subtitle, children }) {
   return (
-    <div className="flex-1 lg:flex-none lg:w-[30%] lg:min-w-[440px] flex items-center justify-center px-6 py-10 lg:p-14">
-      <div className="w-full max-w-[420px] rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-xl shadow-black/20">
+    <div className="relative flex-1 lg:flex-none lg:w-[30%] lg:min-w-[440px] flex items-center justify-center px-6 py-10 lg:p-14">
+      <div className="absolute inset-0 m-auto w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-[420px] ring-1 ring-white/5 rounded-2xl bg-surface p-6 sm:p-8 shadow-2xl shadow-accent/10">
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-2.5">
             <LogoMark size={32} />
