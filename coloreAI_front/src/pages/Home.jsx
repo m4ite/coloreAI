@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import UploadAlert from '../components/UploadAlert';
 import { Spinner } from '../components/ui';
+import { uploadImage } from '../services/imageService';
 
 const SAMPLE_IDS = [
   '1506794778202-cad84cf45f1d',
@@ -36,6 +37,8 @@ export default function HomePage({
   const [alert, setAlert] = useState(null);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [savedImage, setSavedImage] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -45,10 +48,12 @@ export default function HomePage({
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+   if (file.size > 10 * 1024 * 1024) {
       setAlert('too-large');
       return;
     }
+
+    setSelectedFile(file);   // ← novo
 
     const reader = new FileReader();
 
@@ -85,27 +90,42 @@ export default function HomePage({
   const handleColorize = async () => {
     setUploadState('processing');
     setProgress(0);
+    setProgressLabel('Enviando imagem…');
+
+    let uploaded = savedImage;
+
+    try {
+      if (!uploaded && selectedFile) {
+        uploaded = await uploadImage(selectedFile);
+        setSavedImage(uploaded);
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadState('preview');
+      setAlert('upload-failed');
+      return;
+    }
 
     for (const step of PROCESSING_STEPS) {
       await new Promise((r) => setTimeout(r, 400));
-
       setProgress(step.pct);
       setProgressLabel(step.label);
     }
 
     await new Promise((r) => setTimeout(r, 200));
 
-    onResult(
-      previewUrl ||
-        `https://images.unsplash.com/photo-${SAMPLE_IDS[0]}?w=900&h=600&fit=crop&auto=format`
-    );
+    onResult(uploaded?.url || previewUrl);
   };
 
   const reset = () => {
     setUploadState('idle');
     setPreviewUrl(null);
+    setSelectedFile(null);   
+    setSavedImage(null);   
     setAlert(null);
   };
+
+  
 
   return (
     <div className="flex h-full bg-bg overflow-hidden">

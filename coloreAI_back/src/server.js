@@ -4,6 +4,8 @@ require("dotenv").config();
 const pool = require("./config/database");
 const app = express();
 const authRoutes = require("./routes/authRoutes");
+const imageRoutes = require("./routes/imageRoutes");   // ← novo
+
 
 app.use(cors());
 app.use(express.json());
@@ -15,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/images", imageRoutes);
 
 const PORT = 3000;
 
