@@ -18,6 +18,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/images", imageRoutes);
+app.use("/api/admin", require("./routes/adminRoutes"));
 
 const PORT = 3000;
 
