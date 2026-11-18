@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SESSIONS } from './data';
+import { api, getToken, setToken, setUnauthorizedHandler } from './api';
 import AuthPages from './pages/Auth';
 import HomePage from './pages/home';
 import ResultPage from './pages/Result';
@@ -28,12 +29,20 @@ const ADMIN_VIEWS = [
   'admin-monitoring',
 ];
 
+// Links de recuperação de senha abrem a aplicação com ?token=...
+const hasResetLink = () =>
+  new URLSearchParams(window.location.search).has('token');
+
 export default function App() {
   const [view, setView] = useState('login');
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [sessions] = useState(SESSIONS);
+  // Enquanto valida o token salvo, não mostra a tela de login.
+  const [restoring, setRestoring] = useState(
+    () => Boolean(getToken()) && !hasResetLink()
+  );
 
   const isMobile = useIsMobile();
 
@@ -48,16 +57,44 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = useCallback(() => {
+    setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('session');
 
     setUser(null);
     setSession(null);
     setUploadedImage(null);
-    navigate('login');
-  };
+    setView('login');
+  }, []);
+
+  // Token expirado/inválido em qualquer chamada → volta para o login.
+  useEffect(() => {
+    setUnauthorizedHandler(handleLogout);
+    return () => setUnauthorizedHandler(null);
+  }, [handleLogout]);
+
+  // Restaura a sessão ao recarregar: o papel vem do servidor, nunca do storage.
+  useEffect(() => {
+    if (!restoring) return;
+    let cancelled = false;
+    api('/api/auth/me')
+      .then(({ user }) => {
+        if (cancelled) return;
+        if (!user.active) return handleLogout();
+        handleLogin(user);
+      })
+      .catch(() => {
+        if (!cancelled) handleLogout();
+      })
+      .finally(() => {
+        if (!cancelled) setRestoring(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleResult = (img) => {
     setUploadedImage(img);
@@ -76,6 +113,14 @@ export default function App() {
     setUploadedImage(null);
     navigate('home');
   };
+
+  if (restoring) {
+    return (
+      <div className="h-full flex items-center justify-center bg-bg text-sm text-fg-muted">
+        Carregando…
+      </div>
+    );
+  }
 
   const isAuthView =
     !user ||
@@ -145,7 +190,9 @@ export default function App() {
     return <HistoryPage {...sharedProps} />;
   }
 
-  if (ADMIN_VIEWS.includes(view)) {
+  // Telas de admin só para admin. A proteção real dos dados está no backend
+  // (requireAdmin); aqui só evitamos renderizar o painel para quem não pode.
+  if (ADMIN_VIEWS.includes(view) && user.role === 'admin') {
     return <AdminPage {...sharedProps} />;
   }
 

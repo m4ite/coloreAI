@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -12,13 +12,85 @@ import {
   Area,
 } from 'recharts';
 import Sidebar from '../components/Sidebar';
-import {
-  SESSIONS,
-  CHART_DATA,
-  ADMIN_USERS,
-  MONITORING_LOG,
-} from '../data';
+import { SESSIONS, CHART_DATA } from '../data';
 import { Badge } from '../components/ui';
+import { api } from '../api';
+
+/* ─── Data helpers ─── */
+function useAdminData(path) {
+  const [state, setState] = useState({ data: null, error: '', loading: true });
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    api(path)
+      .then((data) => {
+        if (!cancelled) setState({ data, error: '', loading: false });
+      })
+      .catch((err) => {
+        if (!cancelled)
+          setState({ data: null, error: err.message, loading: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [path, reloadKey]);
+
+  const reload = useCallback(() => {
+    setState((s) => ({ ...s, loading: true, error: '' }));
+    setReloadKey((k) => k + 1);
+  }, []);
+
+  return { ...state, reload };
+}
+
+const fmtInt = (n) =>
+  n === null || n === undefined ? '–' : Number(n).toLocaleString('pt-BR');
+
+const fmtDec = (n, digits = 1) =>
+  n === null || n === undefined
+    ? '–'
+    : Number(n).toLocaleString('pt-BR', {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      });
+
+// processing_time é gravado em milissegundos (premissa — ajustar se for segundos).
+const msToSec = (ms) => (ms === null || ms === undefined ? null : ms / 1000);
+
+const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const weekdayLabel = (isoDay) => {
+  const [y, m, d] = isoDay.split('-').map(Number);
+  return WEEKDAYS[new Date(y, m - 1, d).getDay()];
+};
+
+function StateMessage({ loading, error, onRetry }) {
+  if (loading) {
+    return <p className="text-sm text-fg-muted py-6">Carregando…</p>;
+  }
+  if (error) {
+    return (
+      <div className="bg-error/8 border border-error/30 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <p className="text-sm text-error">{error}</p>
+        <button
+          onClick={onRetry}
+          className="text-xs text-fg-muted hover:text-fg border border-border px-3 py-1.5 rounded-lg"
+        >
+          Tentar de novo
+        </button>
+      </div>
+    );
+  }
+  return null;
+}
+
+function EmptyChart({ text }) {
+  return (
+    <div className="h-[180px] flex items-center justify-center text-sm text-fg-subtle border border-dashed border-border rounded-xl">
+      {text}
+    </div>
+  );
+}
 
 /* ─── Shared stat card ─── */
 function StatCard({ label, value, sub, trend, icon }) {
@@ -77,14 +149,33 @@ const tooltipStyle = {
 
 /* ─── Overview tab ─── */
 function OverviewTab() {
+  const { data, error, loading, reload } = useAdminData('/api/admin/stats');
+
+  if (!data) {
+    return <StateMessage loading={loading} error={error} onRetry={reload} />;
+  }
+
+  const { users, colorizations, quality } = data;
+  const avgSec = msToSec(colorizations.avg_processing_time);
+  const chartData = quality.last_7_days.map((d) => ({
+    day: weekdayLabel(d.day),
+    psnr: d.psnr === null ? null : Number(d.psnr.toFixed(2)),
+    ssim: d.ssim === null ? null : Number(d.ssim.toFixed(3)),
+  }));
+  const hasChartData = quality.last_7_days.some((d) => d.count > 0);
+  // Sem métricas reais ainda: mostra dados de exemplo, sinalizados na tela.
+  // Some sozinho quando a primeira métrica for gravada.
+  const isSample = !hasChartData;
+  const qualityData = isSample ? CHART_DATA : chartData;
+
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total de usuários"
-          value="1.247"
-          sub="+23 este mês"
-          trend="+"
+          value={fmtInt(users.total)}
+          sub={`+${fmtInt(users.new_this_month)} este mês`}
+          trend={users.new_this_month > 0 ? '+' : undefined}
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle
@@ -119,9 +210,9 @@ function OverviewTab() {
 
         <StatCard
           label="Imagens coloridas"
-          value="28.493"
-          sub="+341 hoje"
-          trend="+"
+          value={fmtInt(colorizations.completed)}
+          sub={`+${fmtInt(colorizations.today)} hoje`}
+          trend={colorizations.today > 0 ? '+' : undefined}
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle
@@ -149,8 +240,8 @@ function OverviewTab() {
 
         <StatCard
           label="Tempo médio"
-          value="3,2s"
-          sub="por processamento"
+          value={avgSec === null ? '–' : `${fmtDec(avgSec)}s`}
+          sub={avgSec === null ? 'sem dados ainda' : 'por processamento'}
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle
@@ -173,9 +264,8 @@ function OverviewTab() {
 
         <StatCard
           label="PSNR médio"
-          value="31,8"
-          sub="dB — qualidade boa"
-          trend="+"
+          value={fmtDec(quality.avg_psnr)}
+          sub={quality.avg_psnr === null ? 'sem dados ainda' : 'dB'}
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path
@@ -198,7 +288,9 @@ function OverviewTab() {
               Métricas de qualidade
             </p>
             <p className="text-xs text-fg-muted mt-0.5">
-              PSNR e SSIM — últimos 7 dias
+              {isSample
+                ? 'Ilustrativo — os dados reais aparecem após as primeiras colorizações'
+                : 'PSNR e SSIM — últimos 7 dias'}
             </p>
           </div>
 
@@ -229,9 +321,10 @@ function OverviewTab() {
           </div>
         </div>
 
+        <div className={isSample ? 'opacity-60' : undefined}>
         <ResponsiveContainer width="100%" height={240}>
           <LineChart
-            data={CHART_DATA}
+            data={qualityData}
             margin={{ top: 4, right: 20, left: -12, bottom: 0 }}
           >
             <CartesianGrid
@@ -249,7 +342,7 @@ function OverviewTab() {
 
             <YAxis
               yAxisId="psnr"
-              domain={[26, 37]}
+              domain={['auto', 'auto']}
               tick={{ fill: '#71717A', fontSize: 11 }}
               axisLine={false}
               tickLine={false}
@@ -258,7 +351,7 @@ function OverviewTab() {
             <YAxis
               yAxisId="ssim"
               orientation="right"
-              domain={[0.75, 0.95]}
+              domain={['auto', 'auto']}
               tick={{ fill: '#71717A', fontSize: 11 }}
               axisLine={false}
               tickLine={false}
@@ -280,6 +373,7 @@ function OverviewTab() {
               type="monotone"
               dataKey="psnr"
               name="PSNR (dB)"
+              connectNulls
               stroke="#7C3AED"
               strokeWidth={2.5}
               dot={false}
@@ -305,18 +399,32 @@ function OverviewTab() {
                 stroke: '#14532D',
                 strokeWidth: 2,
               }}
+              connectNulls
             />
           </LineChart>
         </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
 }
 
 /* ─── Users tab ─── */
-function UsersTab() {
+function UsersTab({ currentUser }) {
   const [search, setSearch] = useState('');
-  const [users, setUsers] = useState(ADMIN_USERS);
+  const { data, error, loading, reload } = useAdminData('/api/admin/users');
+  // Alterações confirmadas pelo servidor, aplicadas por cima da lista carregada.
+  const [overrides, setOverrides] = useState({});
+  const [busyId, setBusyId] = useState(null);
+  const [actionError, setActionError] = useState('');
+
+  if (!data) {
+    return <StateMessage loading={loading} error={error} onRetry={reload} />;
+  }
+
+  const users = data.users.map((u) =>
+    overrides[u.id] ? { ...u, ...overrides[u.id] } : u
+  );
 
   const filtered = users.filter(
     (u) =>
@@ -324,32 +432,50 @@ function UsersTab() {
       u.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleStatus = (id) =>
-    setUsers((us) =>
-      us.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              status: u.status === 'active' ? 'inactive' : 'active',
-            }
-          : u
-      )
+  // Só atualiza a linha depois que o servidor confirmar a mudança.
+  const runAction = async (u, path, body, confirmText) => {
+    if (confirmText && !window.confirm(confirmText)) return;
+    setBusyId(u.id);
+    setActionError('');
+    try {
+      const { user: updated } = await api(`/api/admin/users/${u.id}/${path}`, {
+        method: 'PATCH',
+        body,
+      });
+      setOverrides((o) => ({ ...o, [updated.id]: updated }));
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const toggleStatus = (u) =>
+    runAction(
+      u,
+      'status',
+      { active: !u.active },
+      u.active ? `Desativar a conta de ${u.name}? A pessoa não conseguirá mais entrar.` : null
     );
 
-  const toggleRole = (id) =>
-    setUsers((us) =>
-      us.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              role: u.role === 'admin' ? 'user' : 'admin',
-            }
-          : u
-      )
+  const toggleRole = (u) =>
+    runAction(
+      u,
+      'role',
+      { role: u.role === 'admin' ? 'user' : 'admin' },
+      u.role === 'admin'
+        ? `Remover o acesso de administrador de ${u.name}?`
+        : `Tornar ${u.name} administrador? A pessoa terá acesso total ao painel.`
     );
 
   return (
     <div className="flex flex-col gap-4">
+      {actionError && (
+        <div className="bg-error/8 border border-error/30 rounded-xl px-4 py-3 text-sm text-error">
+          {actionError}
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-md">
@@ -415,7 +541,17 @@ function UsersTab() {
             </thead>
 
             <tbody className="divide-y divide-border/50">
-              {filtered.map((u) => (
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-fg-subtle">
+                    Nenhum usuário encontrado.
+                  </td>
+                </tr>
+              )}
+              {filtered.map((u) => {
+                const isSelf = u.id === currentUser?.id;
+                const disabled = isSelf || busyId === u.id;
+                return (
                 <tr
                   key={u.id}
                   className="hover:bg-muted-bg/20 transition-colors"
@@ -430,6 +566,11 @@ function UsersTab() {
 
                       <span className="font-medium text-fg">
                         {u.name}
+                        {isSelf && (
+                          <span className="ml-1.5 text-xs text-fg-subtle font-normal">
+                            (você)
+                          </span>
+                        )}
                       </span>
                     </div>
                   </td>
@@ -450,40 +591,37 @@ function UsersTab() {
                     <div className="flex items-center gap-2">
                       <div
                         className={`w-1.5 h-1.5 rounded-full ${
-                          u.status === 'active'
-                            ? 'bg-success'
-                            : 'bg-fg-subtle'
+                          u.active ? 'bg-success' : 'bg-fg-subtle'
                         }`}
                       />
 
-                      <Badge
-                        variant={
-                          u.status === 'active' ? 'success' : 'error'
-                        }
-                      >
-                        {u.status === 'active' ? 'Ativo' : 'Inativo'}
+                      <Badge variant={u.active ? 'success' : 'error'}>
+                        {u.active ? 'Ativo' : 'Inativo'}
                       </Badge>
                     </div>
                   </td>
 
                   <td className="px-5 py-4 font-mono text-sm text-fg-muted">
-                    {u.count}
+                    {fmtInt(u.colorizations)}
                   </td>
 
                   <td className="px-5 py-4 pr-6">
-                    <div className="flex gap-2">
+                    <div
+                      className="flex gap-2"
+                      title={isSelf ? 'Você não pode alterar a sua própria conta.' : undefined}
+                    >
                       <button
-                        onClick={() => toggleStatus(u.id)}
-                        className="text-xs text-fg-muted hover:text-fg border border-border hover:border-fg-subtle/50 px-2.5 py-1 rounded-lg transition-all hover:bg-muted-bg/30"
+                        onClick={() => toggleStatus(u)}
+                        disabled={disabled}
+                        className="text-xs text-fg-muted hover:text-fg border border-border hover:border-fg-subtle/50 px-2.5 py-1 rounded-lg transition-all hover:bg-muted-bg/30 disabled:opacity-40 disabled:pointer-events-none"
                       >
-                        {u.status === 'active'
-                          ? 'Desativar'
-                          : 'Ativar'}
+                        {u.active ? 'Desativar' : 'Ativar'}
                       </button>
 
                       <button
-                        onClick={() => toggleRole(u.id)}
-                        className="text-xs text-fg-muted hover:text-fg border border-border hover:border-fg-subtle/50 px-2.5 py-1 rounded-lg transition-all hover:bg-muted-bg/30"
+                        onClick={() => toggleRole(u)}
+                        disabled={disabled}
+                        className="text-xs text-fg-muted hover:text-fg border border-border hover:border-fg-subtle/50 px-2.5 py-1 rounded-lg transition-all hover:bg-muted-bg/30 disabled:opacity-40 disabled:pointer-events-none"
                       >
                         {u.role === 'admin'
                           ? '→ Usuário'
@@ -492,7 +630,8 @@ function UsersTab() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -503,6 +642,34 @@ function UsersTab() {
 
 /* ─── Monitoring tab ─── */
 function MonitoringTab() {
+  const stats = useAdminData('/api/admin/stats');
+  const log = useAdminData('/api/admin/colorizations?limit=20');
+
+  if (!stats.data || !log.data) {
+    const failed = stats.error ? stats : log;
+    return (
+      <StateMessage
+        loading={stats.loading || log.loading}
+        error={stats.error || log.error}
+        onRetry={failed.reload}
+      />
+    );
+  }
+
+  const c = stats.data.colorizations;
+  const errorRate =
+    c.finished_24h > 0 ? (c.failed_24h / c.finished_24h) * 100 : null;
+  const avgSec = msToSec(c.avg_processing_time);
+  const timeData = stats.data.quality.last_7_days.map((d) => ({
+    day: weekdayLabel(d.day),
+    avg:
+      d.avg_processing_time === null
+        ? null
+        : Number(msToSec(d.avg_processing_time).toFixed(2)),
+  }));
+  const hasTimeData = timeData.some((d) => d.avg !== null);
+  const entries = log.data.colorizations;
+
   return (
     <div className="flex flex-col gap-5">
       {/* KPI row */}
@@ -510,21 +677,29 @@ function MonitoringTab() {
         {[
           {
             label: 'Fila atual',
-            value: '3',
-            sub: 'imagens em espera',
+            value: fmtInt(c.processing),
+            sub: 'imagens em processamento',
             color: 'text-info',
           },
           {
-            label: 'Uso de GPU',
-            value: '74%',
-            sub: 'A100 — operação normal',
+            label: 'Tempo médio',
+            value: avgSec === null ? '–' : `${fmtDec(avgSec)}s`,
+            sub: avgSec === null ? 'sem dados ainda' : 'por processamento',
             color: 'text-warning',
           },
           {
             label: 'Taxa de erro',
-            value: '1,2%',
-            sub: 'últimas 24h',
-            color: 'text-success',
+            value: errorRate === null ? '–' : `${fmtDec(errorRate)}%`,
+            sub:
+              errorRate === null
+                ? 'nenhum processamento nas últimas 24h'
+                : `últimas 24h (${fmtInt(c.failed_24h)} de ${fmtInt(c.finished_24h)})`,
+            color:
+              errorRate === null
+                ? 'text-fg-muted'
+                : errorRate > 5
+                ? 'text-error'
+                : 'text-success',
           },
         ].map((k) => (
           <div
@@ -561,12 +736,15 @@ function MonitoringTab() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-xs text-fg-muted font-medium">
-              Ao vivo
-            </span>
-          </div>
+          <button
+            onClick={() => {
+              stats.reload();
+              log.reload();
+            }}
+            className="text-xs text-fg-muted hover:text-fg border border-border hover:border-fg-subtle/50 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Atualizar
+          </button>
         </div>
 
         <div className="overflow-x-auto">
@@ -593,60 +771,82 @@ function MonitoringTab() {
             </thead>
 
             <tbody className="divide-y divide-border/40">
-              {MONITORING_LOG.map((entry) => (
+              {entries.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-fg-subtle">
+                    Nenhuma colorização registrada ainda.
+                  </td>
+                </tr>
+              )}
+              {entries.map((entry) => {
+                const userName = entry.user_name || 'Usuário removido';
+                const durationSec = msToSec(entry.processing_time);
+                const created = new Date(entry.created_at);
+                return (
                 <tr
                   key={entry.id}
                   className="hover:bg-muted-bg/15 transition-colors"
+                  title={entry.error_message || undefined}
                 >
                   <td className="pl-6 pr-5 py-3.5 font-mono text-xs text-fg-subtle">
-                    {entry.id}
+                    {entry.id.slice(0, 8)}
                   </td>
 
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
                         <span className="text-[9px] font-bold text-accent-light">
-                          {entry.user[0]}
+                          {userName[0]}
                         </span>
                       </div>
 
                       <span className="text-fg text-sm">
-                        {entry.user}
+                        {userName}
                       </span>
                     </div>
                   </td>
 
                   <td className="px-5 py-3.5 font-mono text-xs text-fg-muted">
-                    {entry.time}
+                    {created.toLocaleString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </td>
 
                   <td className="px-5 py-3.5 font-mono text-xs text-fg-muted">
-                    {entry.duration}
+                    {durationSec === null ? '–' : `${fmtDec(durationSec)}s`}
                   </td>
 
                   <td className="px-5 py-3.5 font-mono text-xs text-fg-muted">
-                    {entry.psnr ? `${entry.psnr} dB` : '–'}
+                    {entry.psnr === null ? '–' : `${fmtDec(entry.psnr)} dB`}
                   </td>
 
                   <td className="px-5 py-3.5 font-mono text-xs text-fg-muted">
-                    {entry.ssim ? entry.ssim.toFixed(2) : '–'}
+                    {entry.ssim === null ? '–' : fmtDec(entry.ssim, 2)}
                   </td>
 
                   <td className="px-5 py-3.5 pr-6">
                     <Badge
                       variant={
-                        entry.status === 'done'
+                        entry.status === 'completed'
                           ? 'success'
-                          : 'error'
+                          : entry.status === 'failed'
+                          ? 'error'
+                          : 'default'
                       }
                     >
-                      {entry.status === 'done'
+                      {entry.status === 'completed'
                         ? 'Concluído'
-                        : 'Falhou'}
+                        : entry.status === 'failed'
+                        ? 'Falhou'
+                        : 'Processando'}
                     </Badge>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -664,17 +864,12 @@ function MonitoringTab() {
           </p>
         </div>
 
+        {!hasTimeData ? (
+          <EmptyChart text="Nenhum processamento concluído nos últimos 7 dias." />
+        ) : (
         <ResponsiveContainer width="100%" height={180}>
           <AreaChart
-            data={[
-              { day: 'Seg', avg: 3.8 },
-              { day: 'Ter', avg: 3.5 },
-              { day: 'Qua', avg: 3.1 },
-              { day: 'Qui', avg: 3.3 },
-              { day: 'Sex', avg: 2.9 },
-              { day: 'Sáb', avg: 3.2 },
-              { day: 'Dom', avg: 3.0 },
-            ]}
+            data={timeData}
             margin={{ top: 4, right: 16, left: -12, bottom: 0 }}
           >
             <defs>
@@ -712,7 +907,7 @@ function MonitoringTab() {
             />
 
             <YAxis
-              domain={[2, 5]}
+              domain={['auto', 'auto']}
               tick={{ fill: '#71717A', fontSize: 11 }}
               axisLine={false}
               tickLine={false}
@@ -734,9 +929,11 @@ function MonitoringTab() {
                 r: 5,
                 fill: '#7C3AED',
               }}
+              connectNulls
             />
           </AreaChart>
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
@@ -889,7 +1086,7 @@ export default function AdminPage({
           </div>
 
           {currentView === 'admin-overview' && <OverviewTab />}
-          {currentView === 'admin-users' && <UsersTab />}
+          {currentView === 'admin-users' && <UsersTab currentUser={user} />}
           {currentView === 'admin-monitoring' && <MonitoringTab />}
         </div>
       </main>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Input } from '../components/ui';
-
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '../api';
 
 // Símbolo da marca (public/favicon.svg). alt vazio: o nome "ColoreAI" já aparece ao lado
 function LogoMark({ size = 20 }) {
