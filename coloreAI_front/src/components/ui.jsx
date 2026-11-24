@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export function Button({
   variant = 'primary',
@@ -40,10 +41,13 @@ export function Input({
   error,
   className = '',
   id,
+  type = 'text',
   ...props
 }) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const inputId =
     id || label?.toLowerCase().replace(/\s/g, '-');
+  const isPassword = type === 'password';
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -56,16 +60,38 @@ export function Input({
         </label>
       )}
 
-      <input
-        id={inputId}
-        className={`w-full bg-card border ${
-          error
-            ? 'border-error/60 focus:border-error'
-            : 'border-border focus:border-accent/60'
-        } text-fg placeholder:text-fg-subtle rounded-lg px-3 py-2.5 text-sm transition-colors outline-none ${className}`}
-        {...props}
-      />
+      <div className="relative">
+        <input
+          id={inputId}
+          type={isPassword && passwordVisible ? 'text' : type}
+          className={`w-full bg-card border ${
+            error
+              ? 'border-error/60 focus:border-error'
+              : 'border-border focus:border-accent/60'
+          } text-fg placeholder:text-fg-subtle rounded-lg px-3 py-2.5 text-sm transition-colors outline-none ${
+            isPassword ? 'pr-10' : ''
+          } ${className}`}
+          {...props}
+        />
 
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setPasswordVisible((v) => !v)}
+            onMouseDown={(e) => e.preventDefault()}
+            aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}
+            aria-pressed={passwordVisible}
+            aria-controls={inputId}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-fg-subtle hover:bg-muted-bg transition-colors outline-none focus-visible:bg-muted-bg focus-visible:ring-2 focus-visible:ring-accent/60"
+          >
+            {passwordVisible ? (
+              <EyeOff size={16} aria-hidden="true" />
+            ) : (
+              <Eye size={16} aria-hidden="true" />
+            )}
+          </button>
+        )}
+      </div>
       {error && (
         <p className="text-xs text-error">
           {error}

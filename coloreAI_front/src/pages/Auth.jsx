@@ -95,10 +95,10 @@ function BrandPanel() {
 
 function FormPanel({ title, subtitle, children }) {
   return (
-    <div className="relative flex-1 lg:flex-none lg:w-[30%] lg:min-w-[440px] flex items-center justify-center px-6 py-10 lg:p-14">
+    <div className="relative flex-1 lg:flex-none lg:w-[35%] lg:min-w-[440px] flex items-center justify-center px-6 py-10 lg:p-14">
       <div className="absolute inset-0 m-auto w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-[420px] ring-1 ring-white/5 rounded-2xl bg-surface p-6 sm:p-8 shadow-2xl shadow-accent/10">
+      <div className="relative w-full max-w-[420px] ring-1 ring-white/5 rounded-2xl bg-card p-6 sm:p-8 shadow-2xl shadow-accent/10">
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-2.5">
             <LogoMark size={32} />
