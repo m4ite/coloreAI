@@ -21,6 +21,23 @@
   --color-warning: #EAB308;
   --color-error: #EF4444;
   --color-info: #3B82F6;
+
+  --animate-fade-in: fade-in 1s ease-out both;
+  --animate-wordmark-in: fade-in 2s ease-out both, wordmark-light 1s ease-out 1s both;
+  --animate-fade-out-late: fade-out 1s ease-out 1s both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  @keyframes wordmark-light {
+    from { color: var(--color-fg-muted); }
+    to { color: var(--color-fg); }
+  }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -32,6 +49,14 @@ html, body, #root {
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* "AI" do nome da marca */
+.brand-ai {
+  background: linear-gradient(100deg, var(--color-accent-light) 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
