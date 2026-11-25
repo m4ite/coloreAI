@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { SESSIONS } from './data';
 import { api, getToken, setToken, setUnauthorizedHandler } from './api';
 import AuthPages from './pages/Auth';
-import HomePage from './pages/home';
+import HomePage from './pages/Home';
 import ResultPage from './pages/Result';
 import HistoryPage from './pages/History';
 import AdminPage from './pages/Admin';
 import MobilePages from './pages/Mobile';
+import { resetIntro } from './components/logoIntroState';
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(() => window.innerWidth < 768);
@@ -65,6 +66,7 @@ export default function App() {
     setUser(null);
     setSession(null);
     setUploadedImage(null);
+    resetIntro();
     setView('login');
   }, []);
 
