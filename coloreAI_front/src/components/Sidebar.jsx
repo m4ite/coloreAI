@@ -186,7 +186,7 @@ export default function Sidebar({
         <img src="/favicon.svg" alt="" className="w-7 h-7" />
 
         <span className="font-semibold text-fg tracking-tight">
-          ColoreAI
+          Colore<span className="brand-ai">AI</span>
         </span>
       </div>
 

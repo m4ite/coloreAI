@@ -66,7 +66,9 @@ function MobileHome({
           {/* Mesmo símbolo da Sidebar: public/favicon.svg, 28px (w-7) */}
           <img src="/favicon.svg" alt="" className="w-7 h-7" />
 
-          <span className="font-semibold text-fg">ColoreAI</span>
+          <span className="font-semibold text-fg">
+            Colore<span className="brand-ai">AI</span>
+          </span>
         </div>
 
         <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">

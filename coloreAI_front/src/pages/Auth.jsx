@@ -1,41 +1,75 @@
 import { useState } from 'react';
 import { Button, Input } from '../components/ui';
+import LogoIntro from '../components/LogoIntro';
+import LogoSvg from '../components/LogoSvg';
+import { shouldPlayIntro } from '../components/logoIntroState';
 import { API_URL } from '../api';
 
-// Símbolo da marca (public/favicon.svg). alt vazio: o nome "ColoreAI" já aparece ao lado
-function LogoMark({ size = 20 }) {
+// O logo com volume tem margem para a sombra: a caixa é maior e a margem negativa compensa.
+// Com `animated`, a versão animada (LogoIntro) ocupa a mesma caixa até terminar.
+function LogoMark({ size = 20, animated = false, onAnimationEnd }) {
+  if (size >= 48) {
+    const box = Math.round(size * 1.3);
+    const style = { width: box, height: box, margin: (size - box) / 2 };
+    if (animated) {
+      return <LogoIntro style={style} onDone={onAnimationEnd} />;
+    }
+    return (
+      <span className="block shrink-0" style={style} aria-hidden="true">
+        <LogoSvg />
+      </span>
+    );
+  }
   return <img src="/favicon.svg" alt="" width={size} height={size} />;
 }
 
 function BrandPanel() {
+  // decidido na montagem: toca no refresh e após logout (ver logoIntroState)
+  const [playIntro] = useState(shouldPlayIntro);
+  const [logoAnimating, setLogoAnimating] = useState(playIntro);
+  // classes escritas por extenso abaixo para o Tailwind encontrá-las
+  const intro = (classes) => (playIntro ? classes : '');
+
   return (
     <div className="hidden lg:flex flex-col justify-between flex-1 p-14 bg-surface relative overflow-hidden">
+
       <div className="absolute inset-0 bg-gradient-to-br from-accent/13 via-transparent to-transparent pointer-events-none" />
       <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-accent/8 blur-3xl pointer-events-none" />
       <div className="absolute top-20 right-0 w-64 h-64 rounded-full bg-gray-300/2 blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-white/1 blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex items-center gap-4 translate-y-10">
-        <LogoMark size={72} />
-        <span className="text-5xl font-bold text-fg tracking-tight">
-          ColoreAI
+        <LogoMark
+          size={72}
+          animated={logoAnimating}
+          onAnimationEnd={() => setLogoAnimating(false)}
+        />
+        <span className={`text-5xl font-bold text-fg tracking-tight ${playIntro ? 'animate-wordmark-in' : ''}`}>
+          Colore
+          {/* cópia cinza empilhada sobre o degradê (mesma célula do grid), some quando o logo termina */}
+          <span className="inline-grid">
+            <span className="brand-ai [grid-area:1/1]">AI</span>
+            {playIntro && (
+              <span aria-hidden="true" className="[grid-area:1/1] text-fg-muted animate-fade-out-late">
+                AI
+              </span>
+            )}
+          </span>
         </span>
       </div>
 
-      <div className="relative z-10 max-w-sm mt-10">
-        <h2 className="text-[2.6rem] font-bold text-gray-100 leading-[1.15] mb-5">
-          Reviva suas
-          <br />
-          memórias <span className="text-accent-light">em cores</span>
+      <div className="relative z-10 max-w-xl mt-10">
+        <h2 className={`text-[2.6rem] font-bold text-gray-100 leading-[1.15] mb-5 text-balance ${intro('animate-fade-in')}`}>
+          Reviva suas memórias <span className="text-accent-light">em cores</span>
         </h2>
 
-        <p className="text-fg-muted leading-relaxed text-base mb-14">
+        <p className={`text-fg-muted leading-relaxed text-base mb-14 max-w-[55ch] ${intro('animate-fade-in')}`}>
           Inteligência artificial de última geração para colorir fotos
           históricas com fidelidade cromática e naturalidade, preservando cada
           detalhe.
         </p>
 
-        <div className="flex items-center gap-4">
+        <div className={`flex items-center gap-4 ${intro('animate-fade-in')}`}>
           <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5 shrink-0">
             <img
               src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=180&h=120&fit=crop&auto=format"
@@ -73,7 +107,7 @@ function BrandPanel() {
         </div>
       </div>
 
-      <div className="relative z-10 flex gap-8">
+      <div className={`relative z-10 flex gap-8 ${intro('animate-fade-in')}`}>
         {[
           { value: '28.493', label: 'fotos coloridas' },
           { value: '31.8 dB', label: 'PSNR médio' },
@@ -102,7 +136,9 @@ function FormPanel({ title, subtitle, children }) {
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-2.5">
             <LogoMark size={32} />
-            <span className="font-semibold text-fg">ColoreAI</span>
+            <span className="font-semibold text-fg">
+              Colore<span className="brand-ai">AI</span>
+            </span>
           </div>
         </div>
 
